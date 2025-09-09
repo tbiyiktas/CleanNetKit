@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](#license)
 [![Status](https://img.shields.io/badge/Stability-Production%20Ready-blue)](#)
 
-**Why CleanNetKit?**  
+**Why CleanNetKit?**
 It brings structure to Android networking: explicit commands (GET/POST/PUT/PATCH/DELETE), retry policies, pluggable strategies, and clear separation of concerns. You get **Room-like ergonomics** but for network APIs.
 
 ---
@@ -16,6 +16,7 @@ It brings structure to Android networking: explicit commands (GET/POST/PUT/PATCH
 
 * [Highlights](#highlights)
 * [Quick Start](#quick-start)
+
   * [1) Configure NetworkManager](#1-configure-networkmanager)
   * [2) Define APIs](#2-define-apis)
   * [3) Use Cases & Services](#3-use-cases--services)
@@ -25,6 +26,7 @@ It brings structure to Android networking: explicit commands (GET/POST/PUT/PATCH
 * [Upload Support](#upload-support)
 * [Backoff & Rate Limiting](#backoff--rate-limiting)
 * [Strategies Explained](#strategies-explained)
+* [Architecture Overview](#architecture-overview)
 * [Clean Architecture Integration](#clean-architecture-integration)
 * [FAQ](#faq)
 * [License](#license)
@@ -129,7 +131,7 @@ Cancel easily in `onDestroy`:
 
 * Retry on **408/429/5xx** by default.
 * Pluggable retry policies: `ExponentialBackoff`, `FullJitterBackoff`, `RateLimitAwareRetryPolicy`, etc.
-* Customize per-command: 
+* Customize per-command:
 
 ```java
 ACommand cmd = new PostCommand("/todos", body, null)
@@ -168,17 +170,18 @@ Payload-sensitive retry policy ensures large uploads are never retried blindly.
 
 Strategies define **how the network layer decides to retry, delay, or drop a request**. CleanNetKit includes:
 
-- **FixedBackoff**: Always wait a constant duration (e.g., 2s) between retries.
-- **ExponentialBackoff**: Double the delay after each retry (1s → 2s → 4s → 8s).
-- **FibonacciBackoff**: Delay grows following Fibonacci numbers (1s → 1s → 2s → 3s → 5s).
-- **Jitter Variants**:
-  - *FullJitter*: random delay in `[0, base*2^attempt]`.
-  - *EqualJitter*: average between exponential and random.
-  - *DecorrelatedJitter*: random spread, avoids thundering herd.
-- **PayloadSensitiveRetryPolicy**: Don’t retry large uploads blindly; configurable cutoff size.
-- **RateLimitAwareRetryPolicy**: Looks for `429` responses and honors `Retry-After` header.
-- **CircuitBreakerPolicy**: Temporarily blocks requests to an endpoint if too many failures occur, resets after cooldown.
-- **QueueAwareStrategy**: Introduces delay based on system load and queue capacity.
+* **FixedBackoff**: Always wait a constant duration (e.g., 2s) between retries.
+* **ExponentialBackoff**: Double the delay after each retry (1s → 2s → 4s → 8s).
+* **FibonacciBackoff**: Delay grows following Fibonacci numbers (1s → 1s → 2s → 3s → 5s).
+* **Jitter Variants**:
+
+  * *FullJitter*: random delay in `[0, base*2^attempt]`.
+  * *EqualJitter*: average between exponential and random.
+  * *DecorrelatedJitter*: random spread, avoids thundering herd.
+* **PayloadSensitiveRetryPolicy**: Don’t retry large uploads blindly; configurable cutoff size.
+* **RateLimitAwareRetryPolicy**: Looks for `429` responses and honors `Retry-After` header.
+* **CircuitBreakerPolicy**: Temporarily blocks requests to an endpoint if too many failures occur, resets after cooldown.
+* **QueueAwareStrategy**: Introduces delay based on system load and queue capacity.
 
 You can also **compose strategies** (e.g., exponential backoff with jitter + rate-limit awareness).
 
@@ -190,18 +193,91 @@ RetryPolicy policy = new RateLimitAwareRetryPolicy(
 
 ### Summary Table
 
-| Strategy                     | Behavior                                          | When to Use                                   |
-|------------------------------|---------------------------------------------------|-----------------------------------------------|
-| FixedBackoff                 | Constant delay between retries                   | Simple cases, predictable timing              |
-| ExponentialBackoff           | Delay doubles each retry                         | Network errors, transient outages             |
-| FibonacciBackoff             | Delay grows by Fibonacci sequence                | Moderate growth with less aggressiveness      |
-| FullJitter                   | Random delay up to exponential cap               | Avoid synchronized retry spikes               |
-| EqualJitter                  | Mix of exponential and random                    | Balanced retry distribution                  |
-| DecorrelatedJitter           | Randomized spread per attempt                    | Large systems, reduce thundering herd effect  |
-| PayloadSensitiveRetryPolicy  | Skips retries for large payloads                 | File uploads, large POST bodies               |
-| RateLimitAwareRetryPolicy    | Honors `Retry-After` header                      | APIs with rate limits (e.g., 429 responses)   |
-| CircuitBreakerPolicy         | Opens circuit after consecutive failures         | Protect systems from overload, cascading fail |
-| QueueAwareStrategy           | Adjusts based on queue/system load               | Prevents overload under heavy traffic         |
+| Strategy                    | Behavior                                 | When to Use                                   |
+| --------------------------- | ---------------------------------------- | --------------------------------------------- |
+| FixedBackoff                | Constant delay between retries           | Simple cases, predictable timing              |
+| ExponentialBackoff          | Delay doubles each retry                 | Network errors, transient outages             |
+| FibonacciBackoff            | Delay grows by Fibonacci sequence        | Moderate growth with less aggressiveness      |
+| FullJitter                  | Random delay up to exponential cap       | Avoid synchronized retry spikes               |
+| EqualJitter                 | Mix of exponential and random            | Balanced retry distribution                   |
+| DecorrelatedJitter          | Randomized spread per attempt            | Large systems, reduce thundering herd effect  |
+| PayloadSensitiveRetryPolicy | Skips retries for large payloads         | File uploads, large POST bodies               |
+| RateLimitAwareRetryPolicy   | Honors `Retry-After` header              | APIs with rate limits (e.g., 429 responses)   |
+| CircuitBreakerPolicy        | Opens circuit after consecutive failures | Protect systems from overload, cascading fail |
+| QueueAwareStrategy          | Adjusts based on queue/system load       | Prevents overload under heavy traffic         |
+
+---
+
+## Architecture Overview
+
+```mermaid
+flowchart TD
+    %% Layers
+    subgraph "UI Layer" 
+        direction TB
+        UI["Android Activities & Adapters"]:::ui
+    end
+
+    subgraph "Domain Layer"
+        direction TB
+        Domain["UseCase Interfaces & Domain Models"]:::domain
+    end
+
+    subgraph "Application Layer"
+        direction TB
+        AppService["Service Implementations"]:::application
+    end
+
+    subgraph "API & Data Layer"
+        direction TB
+        API["Api Interfaces"]:::api
+        DTO["Remote DTOs & Mappers"]:::data
+    end
+
+    subgraph "Network Core"
+        direction TB
+        NetCore["NetworkManager, ABaseApi, Commands,\\nInterceptors, Parsers, Strategies"]:::network
+    end
+
+    subgraph "HTTP Adapter"
+        direction TB
+        HTTPAdapter["IHttpConnection & Factories"]:::http
+    end
+
+    External["External HTTP Endpoints\\n(jsonplaceholder.typicode.com)"]:::external
+
+    %% Data Flow
+    UI -->|"calls UseCase.handle()"| Domain
+    Domain -->|"invokes Service.handle()"| AppService
+    AppService -->|"calls Api method"| API
+    API -->|"constructs ACommand"| NetCore
+    NetCore -->|"uses IHttpConnectionAdapter"| HTTPAdapter
+    HTTPAdapter -->|"sends HTTP request"| External
+    External -->|"HTTP response"| HTTPAdapter
+    HTTPAdapter -->|"returns raw response"| NetCore
+    NetCore -->|"parses to DTO"| DTO
+    DTO -->|"mapped to Domain Model"| Domain
+    Domain -->|"CancellableFuture result"| UI
+
+    %% Click Events
+    click UI "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit"
+    click Domain "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/domain"
+    click AppService "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/application/service"
+    click API "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/application/api"
+    click DTO "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/data/remote/dto"
+    click NetCore "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/lib/net"
+    click HTTPAdapter "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/lib/net/connection"
+
+    %% Styles
+    classDef ui fill:#AED6F1,stroke:#3498DB,color:#1B4F72,stroke-width:2px;
+    classDef domain fill:#ABEBC6,stroke:#27AE60,color:#145A32,stroke-width:2px;
+    classDef application fill:#F9E79F,stroke:#F1C40F,color:#7D6608,stroke-width:2px;
+    classDef api fill:#D2B4DE,stroke:#8E44AD,color:#4A235A,stroke-width:2px;
+    classDef data fill:#D5DBDB,stroke:#7B7D7D,color:#1B2631,stroke-width:2px;
+    classDef network fill:#F5B7B1,stroke:#E74C3C,color:#641E16,stroke-width:2px;
+    classDef http fill:#D6EAF8,stroke:#5499C7,color:#1A5276,stroke-width:2px;
+    classDef external fill:#ECECEC,stroke:#A6ACAF,color:#616A6B,stroke-width:2px;
+```
 
 ---
 
@@ -216,13 +292,13 @@ RetryPolicy policy = new RateLimitAwareRetryPolicy(
 
 ## FAQ
 
-**Q: Is it tied to OkHttp?**  
+**Q: Is it tied to OkHttp?**
 A: No. Any `IHttpConnectionFactory` works (`HttpUrlConnectionFactory`, `HttpsConnectionAdapter`, etc.).
 
-**Q: Does it work with coroutines/RxJava?**  
+**Q: Does it work with coroutines/RxJava?**
 A: Futures integrate easily via adapters.
 
-**Q: How to add auth headers?**  
+**Q: How to add auth headers?**
 A: Use `AuthRequestConfigurator` or a custom `Interceptor`.
 
 ---
@@ -232,4 +308,3 @@ A: Use `AuthRequestConfigurator` or a custom `Interceptor`.
 MIT License. See [LICENSE](LICENSE).
 
 ---
-
