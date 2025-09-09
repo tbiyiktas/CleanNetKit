@@ -1,0 +1,51 @@
+<resources>
+
+    <style name="Widget.Clean.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+    </style>
+
+
+    <style name="Widget.AppStoreGreen.Toolbar" parent="Widget.Material3.Toolbar.Surface">
+        <item name="titleTextColor">@color/md_onPrimary_green</item>
+        <item name="subtitleTextColor">@color/md_onPrimary_green</item>
+        <item name="navigationIconTint">@color/md_onPrimary_green</item>
+<!--        <item name="actionIconTint">@color/md_onPrimary_green</item>-->
+        <item name="android:background">@color/md_primary_green</item>
+    </style>
+
+    <style name="Widget.AppStoreGreen.Button.Filled" parent="Widget.Material3.Button">
+        <item name="android:textColor">@color/md_onPrimary_green</item>
+        <item name="backgroundTint">@color/md_primary_green</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="Widget.AppStoreGreen.Button.Outlined" parent="Widget.Material3.Button.OutlinedButton">
+        <item name="android:textColor">@color/md_primary_green</item>
+        <item name="strokeColor">@color/md_primary_green</item>
+        <item name="cornerRadius">8dp</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="Widget.AppStoreGreen.TextInputLayout" parent="Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxStrokeColor">@color/md_primary_green</item>
+        <item name="hintTextColor">@color/md_primary_green</item>
+    </style>
+
+    <style name="Widget.AppStoreGreen.ImageView.Rounded" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+</resources>
