@@ -35,9 +35,9 @@ It brings structure to Android networking: explicit commands (GET/POST/PUT/PATCH
 
 ## Highlights
 
-* **Command Pattern**: `GetCommand`, `PostCommand`, `PutCommand`, `PatchCommand`, `DeleteCommand`, `MultipartCommand`.
+* **Command Pattern**: `HttpGet`, `HttpPost`, `HttpPut`, `HttpDelete`, `HttpMultipartUpload`.
 * **CancellableFuture<T>**: Compose like `CompletableFuture`, cancel at will.
-* **Retry & Backoff**: 10+ strategies (Exponential, Jitter, CircuitBreaker, Payload-aware).
+* **Retry & Backoff**: Multiple strategies (Exponential, Jitter, CircuitBreaker, Payload-aware).
 * **Interceptors**: Logging, Auth, Idempotency headers, custom.
 * **Response Parsing**: Pluggable (default: Gson, passthrough for raw strings).
 * **Service Layer**: Each domain use case (e.g., `CreateTodoUseCase`) mapped to a `Service` implementation.
@@ -51,15 +51,8 @@ It brings structure to Android networking: explicit commands (GET/POST/PUT/PATCH
 ### 1) Configure NetworkManager
 
 ```java
-OkHttpClient ok = new OkHttpClient.Builder()
-    .connectTimeout(Duration.ofSeconds(10))
-    .readTimeout(Duration.ofSeconds(20))
-    .callTimeout(Duration.ofSeconds(30))
-    .retryOnConnectionFailure(true)
-    .build();
-
 NetworkManager nm = new NetworkManager.Builder()
-    .factory(new OkHttpConnectionFactory(ok))
+    .factory(new HttpUrlConnectionFactory())
     .parser(new GsonResponseParser())
     .addInterceptor(new LoggingInterceptor())
     .threadPoolSize(4)
@@ -70,16 +63,14 @@ NetworkManager nm = new NetworkManager.Builder()
 ### 2) Define APIs
 
 ```java
-public class TodoApi extends ABaseApi {
+public class TodoApi extends BaseApi {
     private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
-    private static final Gson GSON = new Gson();
 
     public TodoApi(NetworkManager nm) { super(BASE_URL, nm); }
 
     public CancellableFuture<TodoDto> getTodoById(int id) {
-        Type t = new TypeToken<TodoDto>() {}.getType();
-        ACommand cmd = new GetCommand("/todos/" + id, null, null);
-        return send(cmd, t);
+        HttpGet cmd = new HttpGet("/todos/" + id, null, null);
+        return send(cmd, TodoDto.class);
     }
 }
 ```
@@ -134,7 +125,7 @@ Cancel easily in `onDestroy`:
 * Customize per-command:
 
 ```java
-ACommand cmd = new PostCommand("/todos", body, null)
+HttpPost cmd = new HttpPost("/todos", body, null)
     .withRetryPolicy(new PayloadSensitiveRetryPolicy(body.length(), 2));
 ```
 
@@ -150,8 +141,11 @@ ACommand cmd = new PostCommand("/todos", body, null)
 ## Upload Support
 
 ```java
-UploadApi api = new UploadApi(nm);
-CancellableFuture<UploadResponse> up = api.uploadProfile(file, fields, headers);
+HttpMultipartUpload upload = new HttpMultipartUpload("/profile");
+upload.addFile("avatar", file);
+upload.addField("userId", "42");
+
+CancellableFuture<UploadResponse> up = nm.execute(upload, UploadResponse.class);
 ```
 
 Payload-sensitive retry policy ensures large uploads are never retried blindly.
@@ -213,7 +207,7 @@ RetryPolicy policy = new RateLimitAwareRetryPolicy(
 ```mermaid
 flowchart TD
     %% Layers
-    subgraph "UI Layer" 
+    subgraph "UI Layer"
         direction TB
         UI["Android Activities & Adapters"]:::ui
     end
@@ -236,7 +230,12 @@ flowchart TD
 
     subgraph "Network Core"
         direction TB
-        NetCore["NetworkManager, ABaseApi, Commands,\\nInterceptors, Parsers, Strategies"]:::network
+        NetCore["NetworkManager, BaseApi, Http Commands,\nInterceptors, Parsers, Strategies"]:::network
+    end
+
+    subgraph "Concurrency Core"
+        direction TB
+        ConcurrencyCore["CancellableFuture, AsyncExecutor"]:::concurrency
     end
 
     subgraph "HTTP Adapter"
@@ -244,14 +243,15 @@ flowchart TD
         HTTPAdapter["IHttpConnection & Factories"]:::http
     end
 
-    External["External HTTP Endpoints\\n(jsonplaceholder.typicode.com)"]:::external
+    External["External HTTP Endpoints\n(jsonplaceholder.typicode.com)"]:::external
 
     %% Data Flow
     UI -->|"calls UseCase.handle()"| Domain
     Domain -->|"invokes Service.handle()"| AppService
     AppService -->|"calls Api method"| API
-    API -->|"constructs ACommand"| NetCore
+    API -->|"constructs HttpCommand"| NetCore
     NetCore -->|"uses IHttpConnectionAdapter"| HTTPAdapter
+    NetCore -->|"manages async ops"| ConcurrencyCore
     HTTPAdapter -->|"sends HTTP request"| External
     External -->|"HTTP response"| HTTPAdapter
     HTTPAdapter -->|"returns raw response"| NetCore
@@ -259,14 +259,15 @@ flowchart TD
     DTO -->|"mapped to Domain Model"| Domain
     Domain -->|"CancellableFuture result"| UI
 
-    %% Click Events
-    click UI "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit"
-    click Domain "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/domain"
-    click AppService "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/application/service"
-    click API "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/application/api"
-    click DTO "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/data/remote/dto"
-    click NetCore "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/lib/net"
-    click HTTPAdapter "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/lib/net/connection"
+    %% Click Events (use plain URLs in Mermaid)
+    click UI "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit" _blank
+    click Domain "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/domain" _blank
+    click AppService "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/application/service" _blank
+    click API "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/application/api" _blank
+    click DTO "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/com/example/cleannetkit/data/remote/dto" _blank
+    click NetCore "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/lib/net" _blank
+    click HTTPAdapter "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/lib/net/connection" _blank
+    click ConcurrencyCore "https://github.com/tbiyiktas/cleannetkit/tree/main/app/src/main/java/lib/concurrent" _blank
 
     %% Styles
     classDef ui fill:#AED6F1,stroke:#3498DB,color:#1B4F72,stroke-width:2px;
@@ -275,6 +276,7 @@ flowchart TD
     classDef api fill:#D2B4DE,stroke:#8E44AD,color:#4A235A,stroke-width:2px;
     classDef data fill:#D5DBDB,stroke:#7B7D7D,color:#1B2631,stroke-width:2px;
     classDef network fill:#F5B7B1,stroke:#E74C3C,color:#641E16,stroke-width:2px;
+    classDef concurrency fill:#B1F5B7,stroke:#2ECC71,color:#1E6416,stroke-width:2px;
     classDef http fill:#D6EAF8,stroke:#5499C7,color:#1A5276,stroke-width:2px;
     classDef external fill:#ECECEC,stroke:#A6ACAF,color:#616A6B,stroke-width:2px;
 ```
