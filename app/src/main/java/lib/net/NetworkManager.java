@@ -15,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import lib.concurrent.CancellableFuture;
 import lib.net.command.ACommand;
 import lib.net.connection.HttpUrlConnectionFactory;
 import lib.net.connection.IHttpConnection;
@@ -61,7 +62,7 @@ public class NetworkManager {
                                                                    ACommand command,
                                                                    Type responseType) {
         CancellableFuture<NetResult<T>> f = new CancellableFuture<>();
-        f.attach(command); // cancel() -> command.cancel()
+        f.attachCancelable(command::cancel); // cancel() -> command.cancel()
         // Global interceptor'ları komuta tak
         if (globalInterceptors != null) {
             for (Interceptor it : globalInterceptors) {
@@ -82,7 +83,7 @@ public class NetworkManager {
                                                   ACommand command,
                                                   Type responseType) {
         CancellableFuture<T> f = new CancellableFuture<>();
-        f.attach(command);
+        f.attachCancelable(command::cancel);
         if (globalInterceptors != null) {
             for (Interceptor it : globalInterceptors) {
                 if (it != null) command.addInterceptor(it);

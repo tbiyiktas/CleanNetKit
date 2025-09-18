@@ -7,9 +7,8 @@ import com.example.cleannetkit.domain.model.Todo;
 import com.example.cleannetkit.domain.todo.GetTodosUseCase;
 
 import java.util.List;
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
-
 public class GetTodosService implements GetTodosUseCase {
     private final TodoApi api;
     public GetTodosService(NetworkManager nm) { this.api = new TodoApi(nm); }

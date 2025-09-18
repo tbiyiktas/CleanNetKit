@@ -1,7 +1,7 @@
 // com/example/cleannetkit/domain/posts/DeletePostUseCase.java
 package com.example.cleannetkit.domain.posts;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 
 public interface DeletePostUseCase {
     CancellableFuture<Void> handle(Command command);

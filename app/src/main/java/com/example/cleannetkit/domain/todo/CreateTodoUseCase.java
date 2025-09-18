@@ -1,7 +1,7 @@
 package com.example.cleannetkit.domain.todo;
 
 import com.example.cleannetkit.domain.model.Todo;
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 
 public interface CreateTodoUseCase {
     CancellableFuture<Todo> handle(Command command);

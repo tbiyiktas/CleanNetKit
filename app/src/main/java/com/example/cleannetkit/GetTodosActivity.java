@@ -20,7 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CancellationException;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.HttpException;
 import lib.net.NetworkManager;
 

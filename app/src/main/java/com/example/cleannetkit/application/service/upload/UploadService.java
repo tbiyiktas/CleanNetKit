@@ -5,12 +5,10 @@ import com.example.cleannetkit.application.api.UploadApi;
 import com.example.cleannetkit.application.api.UploadApi.UploadResponse;
 import com.example.cleannetkit.domain.upload.UploadUseCase;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
-
 public class UploadService implements UploadUseCase {
     private final UploadApi api;
-
     public UploadService(NetworkManager nm) {
         // İstersen composite RC (Default + Auth + Idempotency) ile kur
         this.api = new UploadApi(nm);

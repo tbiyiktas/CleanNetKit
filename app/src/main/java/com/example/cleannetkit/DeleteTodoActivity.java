@@ -8,7 +8,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.example.cleannetkit.application.service.todo.DeleteTodoService;
 import com.example.cleannetkit.domain.todo.DeleteTodoUseCase;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.HttpException;
 import lib.net.NetworkManager;
 

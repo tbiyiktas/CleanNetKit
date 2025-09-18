@@ -3,7 +3,7 @@ package com.example.cleannetkit.domain.posts;
 
 import com.example.cleannetkit.domain.model.Post;
 import java.util.List;
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 
 public interface GetPostsUseCase {
     CancellableFuture<List<Post>> handle(Command command);

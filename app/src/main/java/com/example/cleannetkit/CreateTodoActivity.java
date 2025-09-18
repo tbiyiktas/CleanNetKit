@@ -9,7 +9,7 @@ import com.example.cleannetkit.application.service.todo.CreateTodoService;
 import com.example.cleannetkit.domain.model.Todo;
 import com.example.cleannetkit.domain.todo.CreateTodoUseCase;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.HttpException;
 import lib.net.NetworkManager;
 
@@ -24,12 +24,10 @@ public class CreateTodoActivity extends AppCompatActivity {
     private TextView tvStatus;
 
     private CancellableFuture<Todo> future;
-
     @Override
     protected void onCreate(Bundle b) {
         super.onCreate(b);
         setContentView(R.layout.activity_create_todo);
-
         etUserId = findViewById(R.id.etUserId);
         etTitle = findViewById(R.id.etTitle);
         cbCompleted = findViewById(R.id.cbCompleted);
@@ -49,6 +47,7 @@ public class CreateTodoActivity extends AppCompatActivity {
             String title = etTitle.getText().toString().trim();
             boolean completed = cbCompleted.isChecked();
 
+
             if (userId == null || title.isEmpty()) {
                 tvStatus.setText("UserId ve Title gerekli.");
                 btnCreate.setEnabled(true);
@@ -56,14 +55,16 @@ public class CreateTodoActivity extends AppCompatActivity {
                 return;
             }
 
-            Todo todo = new Todo( userId, title, completed);
+            Todo todo
+                    = new Todo( userId, title, completed);
 
             NetworkManager nm = MyApplication.getNetworkManager();
             CreateTodoService svc = new CreateTodoService(nm);
 
             future = svc.handle(new CreateTodoUseCase.Command(todo));
             future.thenAccept(created -> {
-                tvStatus.setText("Created ✅ id=" + (created == null ? "-" : created.getId()));
+                tvStatus.setText("Created ✅ id=" + (created == null ?
+                        "-" : created.getId()));
                 btnCreate.setEnabled(true);
                 progress.setVisibility(View.GONE);
             }).exceptionally(ex -> {
@@ -76,7 +77,8 @@ public class CreateTodoActivity extends AppCompatActivity {
     }
 
     private void handleErr(Throwable ex) {
-        Throwable cause = (ex.getCause() != null) ? ex.getCause() : ex;
+        Throwable cause = (ex.getCause() != null) ?
+                ex.getCause() : ex;
         if (cause instanceof CancellationException) return;
         if (cause instanceof HttpException) {
             HttpException he = (HttpException) cause;
@@ -87,7 +89,8 @@ public class CreateTodoActivity extends AppCompatActivity {
     }
 
     private Integer parseInt(String s) {
-        try { return Integer.parseInt(s); } catch (Exception e) { return null; }
+        try { return Integer.parseInt(s);
+        } catch (Exception e) { return null; }
     }
 
     @Override

@@ -7,9 +7,8 @@ import com.example.cleannetkit.domain.model.Post;
 import com.example.cleannetkit.domain.posts.GetPostsUseCase;
 
 import java.util.List;
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
-
 public class GetPostsService implements GetPostsUseCase {
     private final PostsApi api;
     public GetPostsService(NetworkManager nm) { this.api = new PostsApi(nm); }

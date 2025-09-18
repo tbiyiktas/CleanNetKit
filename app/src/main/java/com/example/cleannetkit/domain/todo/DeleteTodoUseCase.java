@@ -1,7 +1,7 @@
 // com/example/cleannetkit/application/DeleteTodoUseCase.java
 package com.example.cleannetkit.domain.todo;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 
 public interface DeleteTodoUseCase {
     CancellableFuture<Void> handle(Command command);

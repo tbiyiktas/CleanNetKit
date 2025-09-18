@@ -7,9 +7,8 @@ import com.example.cleannetkit.data.remote.dto.PostMapper;
 import com.example.cleannetkit.domain.model.Post;
 import com.example.cleannetkit.domain.posts.UpdatePostUseCase;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
-
 public class UpdatePostService implements UpdatePostUseCase {
     private final PostsApi api;
     public UpdatePostService(NetworkManager nm) { this.api = new PostsApi(nm); }

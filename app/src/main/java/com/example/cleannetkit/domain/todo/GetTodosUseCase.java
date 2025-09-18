@@ -4,7 +4,7 @@ import com.example.cleannetkit.domain.model.Todo;
 
 import java.util.List;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 
 public interface GetTodosUseCase {
 

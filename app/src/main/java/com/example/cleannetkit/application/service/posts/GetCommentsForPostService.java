@@ -7,9 +7,8 @@ import com.example.cleannetkit.domain.model.Comment;
 import com.example.cleannetkit.domain.posts.GetCommentsForPostUseCase;
 
 import java.util.List;
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
-
 public class GetCommentsForPostService implements GetCommentsForPostUseCase {
     private final PostsApi api;
     public GetCommentsForPostService(NetworkManager nm) { this.api = new PostsApi(nm); }

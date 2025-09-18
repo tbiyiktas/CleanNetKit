@@ -7,7 +7,7 @@ import com.example.cleannetkit.data.remote.dto.PostMapper;
 import com.example.cleannetkit.domain.model.Post;
 import com.example.cleannetkit.domain.posts.CreatePostUseCase;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
 
 public class CreatePostService implements CreatePostUseCase {

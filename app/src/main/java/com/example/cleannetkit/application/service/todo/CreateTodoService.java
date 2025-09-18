@@ -7,9 +7,8 @@ import com.example.cleannetkit.data.remote.dto.TodoMapper;
 import com.example.cleannetkit.domain.model.Todo;
 import com.example.cleannetkit.domain.todo.CreateTodoUseCase;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
-
 public class CreateTodoService implements CreateTodoUseCase {
     private final TodoApi api;
     public CreateTodoService(NetworkManager nm) { this.api = new TodoApi(nm); }

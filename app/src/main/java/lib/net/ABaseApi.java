@@ -6,6 +6,7 @@ import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
+import lib.concurrent.CancellableFuture;
 import lib.net.command.ACommand;
 import lib.net.command.DeleteCommand;
 import lib.net.command.GetCommand;

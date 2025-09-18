@@ -10,7 +10,7 @@ import com.example.cleannetkit.domain.todo.UpdateTodoUseCase;
 import java.util.HashMap;
 import java.util.Map;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.NetworkManager;
 
 public class UpdateTodoService implements UpdateTodoUseCase {

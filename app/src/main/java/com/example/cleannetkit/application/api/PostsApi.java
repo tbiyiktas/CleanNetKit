@@ -1,4 +1,3 @@
-// com/example/cleannetkit/application/api/PostsApi.java
 package com.example.cleannetkit.application.api;
 
 import com.example.cleannetkit.data.remote.dto.CommentDto;
@@ -12,8 +11,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import lib.concurrent.CancellableFuture;
 import lib.net.ABaseApi;
-import lib.net.CancellableFuture;
 import lib.net.NetworkManager;
 import lib.net.command.ACommand;
 import lib.net.command.DeleteCommand;
@@ -29,8 +28,10 @@ public class PostsApi extends ABaseApi {
     private static final String BASE_URL = "https://jsonplaceholder.typicode.com";
     private static final Gson GSON = new Gson();
 
-    public PostsApi(NetworkManager nm) { super(BASE_URL, nm); }
-    public PostsApi(NetworkManager nm, RequestConfigurator rc) { super(BASE_URL, nm, rc); }
+    public PostsApi(NetworkManager nm) { super(BASE_URL, nm);
+    }
+    public PostsApi(NetworkManager nm, RequestConfigurator rc) { super(BASE_URL, nm, rc);
+    }
 
     /* READ */
     public CancellableFuture<List<PostDto>> getPostsDtoF() {

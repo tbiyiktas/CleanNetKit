@@ -11,7 +11,7 @@ import com.example.cleannetkit.domain.model.Todo;
 import com.example.cleannetkit.domain.todo.GetTodoUseCase;
 import com.example.cleannetkit.domain.todo.UpdateTodoUseCase;
 
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import lib.net.HttpException;
 import lib.net.NetworkManager;
 

@@ -3,7 +3,7 @@ package com.example.cleannetkit.domain.upload;
 
 import java.io.File;
 import java.util.Map;
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 import com.example.cleannetkit.application.api.UploadApi.UploadResponse;
 
 public interface UploadUseCase {

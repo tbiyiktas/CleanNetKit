@@ -3,7 +3,7 @@ package com.example.cleannetkit.domain.posts;
 
 import com.example.cleannetkit.domain.model.Comment;
 import java.util.List;
-import lib.net.CancellableFuture;
+import lib.concurrent.CancellableFuture;
 
 public interface GetCommentsForPostUseCase {
     CancellableFuture<List<Comment>> handle(Command command);
